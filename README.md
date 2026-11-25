@@ -4,7 +4,16 @@ Mostra a música do Spotify como um disco girando, com visual de MP3 player anti
 verde-acinzentada e direcional redondo), letra sincronizada (LRCLIB), barra de progresso clicável
 e controles no direcional: ⏯ no centro, ⏮/⏭ nas laterais, ♥ em cima e letra embaixo.
 
-## Instalar / atualizar
+## Instalar pelo arquivo (sem clonar)
+1. Baixe o `spotify-disc-X.Y.plasmoid` na página de [Releases](https://github.com/Lulizza/spotify-disc/releases/latest).
+2. Clique com o botão direito na área de trabalho → *Adicionar widgets* → *Obter novos widgets* →
+   *Instalar widget de um arquivo local…* e escolha o arquivo baixado.
+   Ou, pelo terminal: `kpackagetool6 -t Plasma/Applet -i spotify-disc-X.Y.plasmoid`
+   (para atualizar, troque `-i` por `-u`).
+
+Precisa de Plasma 6 e `python3`, este só para o botão Curtir.
+
+## Instalar / atualizar a partir do código
     ./install.sh
 Depois: clique com o botão direito na área de trabalho → *Adicionar widgets* → "Spotify Disc".
 Para testar em janela: `plasmawindowed local.spotifydisc`.
