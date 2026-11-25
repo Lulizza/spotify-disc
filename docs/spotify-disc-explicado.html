@@ -1,0 +1,493 @@
+<title>Spotify Disc por dentro</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: árvore de arquivos fixa à esquerda (no celular vira índice no topo), explicação à direita.
+   Tema único escuro, mesma paleta azul do widget e do Quick Menu. */
+:root {
+  --bg: #050C24;
+  --panel: #081633;
+  --raise: #0A1E4A;
+  --line: #24407A;
+  --accent: #5CC8FF;
+  --fg: #D6E6FF;
+  --muted: #7E9CCF;
+  --code-bg: #030819;
+  --display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --body: "Inter", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 400 16px/1.65 var(--body);
+}
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-block: 40px 80px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 48px;
+}
+@media (max-width: 860px) {
+  .wrap { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-block: 24px 64px; }
+}
+
+/* ---------- cabeçalho ---------- */
+header.intro { grid-column: 1 / -1; display: flex; gap: 28px; align-items: center; flex-wrap: wrap; }
+header.intro svg { flex: 0 0 auto; width: 112px; height: 112px; }
+header.intro .txt { flex: 1 1 320px; min-width: 0; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+h1 { font: 700 clamp(2rem, 5vw, 3.1rem)/1.05 var(--display); margin: 10px 0 12px; text-wrap: balance; letter-spacing: -0.02em; }
+.lede { color: var(--muted); max-width: 62ch; margin: 0; font-size: 1.05rem; }
+@media (prefers-reduced-motion: no-preference) {
+  .spin { animation: spin 9s linear infinite; transform-origin: 60px 60px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+}
+
+/* ---------- árvore ---------- */
+nav.tree {
+  position: sticky; top: 24px; align-self: start;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+  padding: 16px 14px; font: 400 13px/1.5 var(--mono);
+}
+nav.tree .title { font: 500 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 2px 6px 12px; }
+nav.tree ul { list-style: none; margin: 0; padding: 0; }
+nav.tree ul ul { padding-left: 14px; border-left: 1px dashed var(--line); margin-left: 8px; }
+nav.tree li { margin: 1px 0; }
+nav.tree .dir { color: var(--muted); padding: 3px 6px; display: block; }
+nav.tree a { display: flex; justify-content: space-between; gap: 8px; padding: 3px 6px; border-radius: 6px; color: var(--fg); text-decoration: none; }
+nav.tree a:hover { background: var(--raise); color: var(--accent); }
+nav.tree a span.n { color: var(--muted); }
+@media (max-width: 860px) { nav.tree { position: static; } }
+
+/* ---------- conteúdo ---------- */
+main { min-width: 0; display: flex; flex-direction: column; gap: 56px; }
+section { min-width: 0; }
+.file-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 10px; margin-bottom: 18px; }
+.file-head .n { font: 500 13px/1 var(--mono); color: var(--accent); }
+h2 { font: 700 1.55rem/1.2 var(--display); margin: 0; letter-spacing: -0.01em; }
+h2 code { font: 500 1.25rem var(--mono); color: var(--fg); background: none; padding: 0; }
+.role { color: var(--muted); font-size: .95rem; flex-basis: 100%; }
+h3 { font: 600 1.08rem/1.3 var(--display); margin: 28px 0 8px; color: var(--fg); }
+p, li { max-width: 68ch; }
+p { margin: 0 0 12px; }
+ul.plain, ol.plain { padding-left: 1.2em; margin: 0 0 14px; }
+ul.plain li, ol.plain li { margin-bottom: 6px; }
+code { font: 0.88em var(--mono); background: var(--raise); padding: 1px 5px; border-radius: 4px; color: var(--fg); }
+pre {
+  background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px;
+  padding: 14px 16px; overflow-x: auto; margin: 6px 0 16px;
+  font: 13px/1.6 var(--mono); color: var(--fg);
+}
+pre code { background: none; padding: 0; font-size: inherit; }
+.c { color: var(--muted); }
+.k { color: var(--accent); }
+
+.table-wrap { overflow-x: auto; margin: 6px 0 16px; border: 1px solid var(--line); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: .92rem; }
+th, td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 500 11px/1.4 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); background: var(--panel); }
+tr:last-child td { border-bottom: 0; }
+td code { white-space: nowrap; }
+.swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--line); vertical-align: -1px; margin-right: 6px; }
+
+.note {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 12px 16px; color: var(--muted); font-size: .95rem; margin: 8px 0 16px;
+}
+.note strong { color: var(--fg); }
+
+/* camadas do disco */
+.layers { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; align-items: start; margin: 10px 0 16px; }
+.layers svg { width: 180px; height: 180px; max-width: 100%; }
+.layers ol { margin: 0; padding-left: 1.2em; }
+@media (max-width: 560px) { .layers { grid-template-columns: minmax(0, 1fr); } .layers svg { margin: 0 auto; } }
+
+.flow { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; overflow-x: auto; }
+.flow svg { display: block; min-width: 640px; width: 100%; height: auto; }
+
+footer { color: var(--muted); font-size: .88rem; border-top: 1px solid var(--line); padding-top: 18px; }
+</style>
+
+<div class="wrap">
+  <header class="intro">
+    <svg viewBox="0 0 120 120" aria-hidden="true">
+      <defs>
+        <linearGradient id="cv" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#5CC8FF"/><stop offset=".55" stop-color="#24407A"/><stop offset="1" stop-color="#0A1E4A"/>
+        </linearGradient>
+        <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".45" stop-color="#ffd6f5" stop-opacity=".35"/>
+          <stop offset=".55" stop-color="#bff3ff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <g class="spin">
+        <circle cx="60" cy="60" r="56" fill="url(#cv)"/>
+        <circle cx="60" cy="60" r="38" fill="none" stroke="#D6E6FF" stroke-opacity=".12" stroke-width="1"/>
+        <circle cx="60" cy="60" r="27" fill="none" stroke="#D6E6FF" stroke-opacity=".12" stroke-width="1"/>
+      </g>
+      <circle cx="60" cy="60" r="56" fill="url(#sheen)"/>
+      <circle cx="60" cy="60" r="20" fill="#D6E6FF" fill-opacity=".35" stroke="#D6E6FF" stroke-opacity=".6"/>
+      <circle cx="60" cy="60" r="7" fill="#050C24" stroke="#D6E6FF" stroke-opacity=".7"/>
+      <circle cx="60" cy="60" r="55.5" fill="none" stroke="#D6E6FF" stroke-opacity=".35"/>
+    </svg>
+    <div class="txt">
+      <div class="eyebrow">Widget KDE Plasma 6 · local.spotifydisc</div>
+      <h1>Spotify Disc por dentro</h1>
+      <p class="lede">O que cada arquivo do widget faz e como as partes conversam: a detecção do Spotify pelo MPRIS, o disco desenhado em camadas, a letra sincronizada do LRCLIB e o botão de curtir pela Web API.</p>
+    </div>
+  </header>
+
+  <nav class="tree" aria-label="Arquivos do projeto">
+    <div class="title">Spotify widget/</div>
+    <ul>
+      <li><a href="#install"><span>install.sh</span><span class="n">10</span></a></li>
+      <li><span class="dir">package/</span>
+        <ul>
+          <li><a href="#metadata"><span>metadata.json</span><span class="n">1</span></a></li>
+          <li><span class="dir">contents/config/</span>
+            <ul>
+              <li><a href="#mainxml"><span>main.xml</span><span class="n">2</span></a></li>
+              <li><a href="#configqml"><span>config.qml</span><span class="n">3</span></a></li>
+            </ul>
+          </li>
+          <li><span class="dir">contents/ui/</span>
+            <ul>
+              <li><a href="#main"><span>main.qml</span><span class="n">4</span></a></li>
+              <li><a href="#disc"><span>Disc.qml</span><span class="n">5</span></a></li>
+              <li><a href="#lyrics"><span>LyricsView.qml</span><span class="n">6</span></a></li>
+              <li><a href="#button"><span>RoundButton.qml</span><span class="n">7</span></a></li>
+              <li><a href="#configui"><span>configGeneral.qml</span><span class="n">8</span></a></li>
+            </ul>
+          </li>
+          <li><span class="dir">contents/code/</span>
+            <ul>
+              <li><a href="#python"><span>spotify_like.py</span><span class="n">9</span></a></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li><a href="#fluxo"><span>↳ como tudo conversa</span><span class="n"></span></a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <section>
+      <p>Um widget do Plasma 6 é uma pasta com um <code>metadata.json</code> e arquivos QML. QML é a linguagem de interface do Qt, e lembra CSS com JavaScript. O Plasma lê essa pasta e desenha o widget. Os números na árvore ao lado seguem a ordem desta página.</p>
+    </section>
+
+    <!-- 1 -->
+    <section id="metadata">
+      <div class="file-head"><span class="n">01</span><h2><code>metadata.json</code></h2><span class="role">A identidade do widget.</span></div>
+      <ul class="plain">
+        <li><code>"KPackageStructure": "Plasma/Applet"</code>: diz que o pacote é um widget (applet).</li>
+        <li><code>"Id": "local.spotifydisc"</code>: o nome único. É o que você usa em <code>plasmawindowed local.spotifydisc</code>, e o widget é instalado em <code>~/.local/share/plasma/plasmoids/local.spotifydisc/</code>.</li>
+        <li><code>Name</code>, <code>Description</code>, <code>Icon</code>, <code>Category</code>: o que aparece em "Adicionar widgets".</li>
+        <li><code>"X-Plasma-API-Minimum-Version": "6.0"</code>: exige Plasma 6.</li>
+      </ul>
+      <p>O Plasma procura o arquivo principal por convenção, em <code>contents/ui/main.qml</code>.</p>
+    </section>
+
+    <!-- 2 -->
+    <section id="mainxml">
+      <div class="file-head"><span class="n">02</span><h2><code>contents/config/main.xml</code></h2><span class="role">Quais configurações existem e seus valores padrão.</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Opção</th><th>Tipo</th><th>Padrão</th><th>Para quê</th></tr></thead>
+          <tbody>
+            <tr><td><code>clientId</code></td><td>texto</td><td>vazio</td><td>ID do seu app do Spotify (para o ♥)</td></tr>
+            <tr><td><code>spinDisc</code></td><td>sim/não</td><td><code>true</code></td><td>o disco gira ou não</td></tr>
+            <tr><td><code>anyPlayer</code></td><td>sim/não</td><td><code>false</code></td><td>usar outro player se o Spotify estiver fechado</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>O Plasma salva esses valores sozinho, em <code>~/.config/plasma-org.kde.plasma.desktop-appletsrc</code>. No QML eles aparecem como <code>Plasmoid.configuration.spinDisc</code>, por exemplo.</p>
+    </section>
+
+    <!-- 3 -->
+    <section id="configqml">
+      <div class="file-head"><span class="n">03</span><h2><code>contents/config/config.qml</code></h2><span class="role">As abas da janela de configuração.</span></div>
+      <p>Define uma única aba, "Geral", que abre <a href="#configui"><code>configGeneral.qml</code></a>.</p>
+    </section>
+
+    <!-- 4 -->
+    <section id="main">
+      <div class="file-head"><span class="n">04</span><h2><code>contents/ui/main.qml</code></h2><span class="role">O cérebro e o layout. É o maior arquivo, explicado aqui na ordem em que as partes aparecem.</span></div>
+
+      <h3>Imports</h3>
+<pre><code>import org.kde.plasma.private.mpris as Mpris        <span class="c">// falar com players de música</span>
+import org.kde.plasma.plasma5support as P5Support   <span class="c">// rodar comandos (o script Python)</span>
+import org.kde.kirigami as Kirigami                 <span class="c">// ícones, unidades de tamanho, tema</span>
+import QtQuick.Effects                              <span class="c">// sombras e máscaras</span>
+import QtQuick.Shapes                               <span class="c">// desenhar formas (o coração)</span></code></pre>
+
+      <h3>Achar o Spotify (MPRIS)</h3>
+      <p><strong>MPRIS</strong> é o padrão do Linux para controlar players de música pelo DBus. Spotify, VLC, Firefox e outros se anunciam assim. O Plasma traz um módulo pronto para isso, o mesmo que o controlador de mídia da bandeja do sistema usa.</p>
+<pre><code>Mpris.Mpris2Model { id: mpris2Model }    <span class="c">// lista de todos os players abertos</span>
+Instantiator { model: mpris2Model; delegate: QtObject { ... } }</code></pre>
+      <ul class="plain">
+        <li>O <code>Mpris2Model</code> é uma lista com um item por player aberto.</li>
+        <li>O <code>Instantiator</code> cria um pequeno objeto para cada player, guardando o <code>container</code> (o player em si), o <code>desktopEntry</code> (ex.: <code>"spotify"</code>), a <code>identity</code> (ex.: <code>"Spotify"</code>) e o <code>isMultiplexer</code>. O multiplexer é um player "virtual" que representa o player ativo, por isso é ignorado.</li>
+        <li><code>pickPlayer()</code> percorre esses objetos e escolhe o que tem "spotify" no nome. Se não houver nenhum e <code>anyPlayer</code> estiver ligado, usa o player ativo do sistema.</li>
+        <li>Ela roda sempre que um player abre, fecha ou muda de nome. <code>Qt.callLater</code> junta várias chamadas seguidas numa só.</li>
+      </ul>
+      <p>O player escolhido fica em <code>root.player</code>, e dele saem propriedades derivadas:</p>
+<pre><code>readonly property bool playing: player.playbackStatus === Mpris.PlaybackStatus.Playing
+readonly property string track:  player.track
+readonly property string artist: player.artist
+readonly property string artUrl: player.artUrl         <span class="c">// URL da capa</span>
+readonly property real lengthSec: player.length / 1e6  <span class="c">// MPRIS usa microssegundos</span></code></pre>
+      <p>Isso é <em>binding</em> do QML: quando <code>player.track</code> muda, <code>root.track</code> muda junto, e tudo que depende dele (o texto na tela, a busca da letra) se atualiza sozinho.</p>
+
+      <h3>A posição da música</h3>
+      <p>O MPRIS <strong>não avisa</strong> quando a música avança, só quando você pula de trecho. Por isso o widget faz duas coisas:</p>
+      <ol class="plain">
+        <li>A cada 2 s chama <code>player.updatePosition()</code> e pergunta a posição real ao Spotify.</li>
+        <li>Entre essas perguntas, estima a posição sozinho. Um <code>Timer</code> de 250 ms atualiza <code>tick</code> (a hora atual), e a barra anda suave.</li>
+      </ol>
+<pre><code>posição = última posição real + (agora − momento dessa leitura) × velocidade</code></pre>
+      <p><code>posStamp</code> guarda o momento da última leitura real. Ele é renovado quando a posição muda ou quando você dá play/pause, para a barra não pular depois de uma pausa. <code>seekTo(segundos)</code> muda <code>player.position</code>: é assim que clicar na barra ou numa linha da letra pula o trecho.</p>
+
+      <h3>Cores</h3>
+      <p>Constantes com a paleta do Quick Menu. Na primeira versão elas eram calculadas a partir da capa com <code>Kirigami.ImageColors</code>; agora são fixas.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Propriedade</th><th>Cor</th><th>Onde aparece</th></tr></thead>
+          <tbody>
+            <tr><td><code>bgTop</code> → <code>bgBottom</code></td><td><span class="swatch" style="background:#0A1E4A"></span><code>#0A1E4A</code> → <span class="swatch" style="background:#050C24"></span><code>#050C24</code></td><td>degradê do fundo</td></tr>
+            <tr><td><code>boxColor</code></td><td><span class="swatch" style="background:#081633"></span><code>#081633</code></td><td>quadrado do disco</td></tr>
+            <tr><td><code>borderColor</code></td><td><span class="swatch" style="background:#24407A"></span><code>#24407A</code></td><td>bordas e trilho da barra</td></tr>
+            <tr><td><code>accent</code></td><td><span class="swatch" style="background:#5CC8FF"></span><code>#5CC8FF</code></td><td>barra, play, ♥ curtido, linha atual da letra</td></tr>
+            <tr><td><code>fg</code></td><td><span class="swatch" style="background:#D6E6FF"></span><code>#D6E6FF</code></td><td>título e letra</td></tr>
+            <tr><td><code>subtle</code></td><td><span class="swatch" style="background:#7E9CCF"></span><code>#7E9CCF</code></td><td>artista e tempos</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>O botão Curtir</h3>
+      <p>QML não faz login OAuth com facilidade, então o trabalho fica com o <a href="#python"><code>spotify_like.py</code></a>. O QML só roda o script e lê a resposta:</p>
+<pre><code>P5Support.DataSource { engine: "executable" ... }</code></pre>
+      <ul class="plain">
+        <li><code>exec.run("python3 '&lt;caminho&gt;' status", callback)</code> roda o comando.</li>
+        <li>Quando ele termina, chega <code>onNewData</code> com o <code>stdout</code>. O widget lê a última linha como JSON (ex.: <code>{"liked": true}</code>) e chama o callback.</li>
+        <li><code>likeState</code> guarda o estado do botão: <code>unknown</code>, <code>liked</code>, <code>notliked</code>, <code>noauth</code>, <code>busy</code> ou <code>error</code>.</li>
+        <li>Quando a música muda, um <code>Timer</code> de 800 ms espera os dados do Spotify se estabilizarem e então pergunta <code>status</code>.</li>
+        <li>Clicar no ♥ roda <code>toggle</code>. Se a resposta for <code>noauth</code>, o clique abre a configuração.</li>
+      </ul>
+
+      <h3>Representação compacta e completa</h3>
+      <ul class="plain">
+        <li><strong><code>compactRepresentation</code></strong>: quando o widget está no painel. Mostra a capa redonda em miniatura. Clique esquerdo abre o widget, botão do meio dá play/pause.</li>
+        <li><strong><code>fullRepresentation</code></strong>: o widget completo. Na área de trabalho (<code>formFactor === Planar</code>) aparece direto.</li>
+      </ul>
+      <p><code>Plasmoid.backgroundHints: NoBackground</code> desliga o fundo padrão do Plasma, porque o widget desenha o seu próprio.</p>
+
+      <h3>Layout da representação completa</h3>
+      <p>Uma coluna (<code>ColumnLayout</code>), de cima para baixo:</p>
+      <ol class="plain">
+        <li><strong>Fundo</strong>: <code>Rectangle</code> com cantos arredondados, degradê azul, borda e sombra (<code>MultiEffect</code>).</li>
+        <li><strong>Quadrado do disco</strong>, que ocupa o espaço que sobrar, com três coisas sobrepostas: o <code>Disc</code> (fica transparente e encolhe para 85% quando a letra abre), a <code>LyricsView</code> (aparece com fade quando <code>showLyrics</code> é verdadeiro) e o <code>RoundButton</code> no canto superior direito, que alterna <code>showLyrics</code>.</li>
+        <li><strong>Título</strong> em negrito e <strong>artista</strong> em <code>subtle</code>. Os dois cortam com "…" se forem longos.</li>
+        <li><strong>Barra de progresso</strong> feita à mão: trilho, preenchimento azul com largura <code>posição / duração</code>, uma bolinha que só aparece no hover, e um <code>MouseArea</code>. Enquanto você arrasta, a barra mostra <code>dragFrac</code>; ao soltar, chama <code>seekTo</code>.</li>
+        <li><strong>Tempos</strong>: posição à esquerda, duração à direita (<code>fmt</code> formata como <code>m:ss</code>).</li>
+        <li><strong>Botões</strong>: ⏮ <code>player.Previous()</code>, ⏯ <code>player.PlayPause()</code> (maior e preenchido), ⏭ <code>player.Next()</code> e o ♥. O coração é um <code>Shape</code> com caminho SVG: contorno quando não curtido, preenchido de azul quando curtido. Um espaçador invisível do tamanho do ♥ fica antes dos botões para centralizar o play.</li>
+      </ol>
+    </section>
+
+    <!-- 5 -->
+    <section id="disc">
+      <div class="file-head"><span class="n">05</span><h2><code>contents/ui/Disc.qml</code></h2><span class="role">O desenho do disco, em camadas.</span></div>
+      <p>Usa as proporções de um CD/DVD real de 120 mm: o furo tem cerca de 12,5% do raio, e o hub de plástico transparente vai até 36%.</p>
+      <p><strong>A função-chave é <code>ring(raioExterno, raioInterno)</code>.</strong> Ela gera um caminho SVG com dois círculos. Com <code>fillRule: OddEvenFill</code>, só a área entre eles é pintada e o miolo fica vazado: um anel com furo. Cada círculo é feito com 4 arcos de 90°, porque arcos de 180° em SVG são ambíguos.</p>
+
+      <div class="layers">
+        <svg viewBox="0 0 180 180" role="img" aria-label="Corte do disco mostrando furo a 12,5% do raio, hub até 36% e área da capa até a borda">
+          <circle cx="90" cy="90" r="84" fill="#24407A" fill-opacity=".55" stroke="#5CC8FF" stroke-opacity=".6"/>
+          <circle cx="90" cy="90" r="30.2" fill="#D6E6FF" fill-opacity=".28" stroke="#D6E6FF" stroke-opacity=".7"/>
+          <circle cx="90" cy="90" r="10.5" fill="#050C24" stroke="#D6E6FF" stroke-opacity=".8"/>
+          <line x1="90" y1="90" x2="174" y2="90" stroke="#D6E6FF" stroke-opacity=".5" stroke-dasharray="3 3"/>
+          <text x="140" y="84" fill="#D6E6FF" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">capa</text>
+          <text x="108" y="104" fill="#D6E6FF" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">hub</text>
+          <text x="90" y="160" fill="#7E9CCF" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">furo 12,5% · hub 36%</text>
+        </svg>
+        <ol class="plain">
+          <li><strong>Sombra</strong>: um anel preto invisível passado a um <code>MultiEffect</code> com <code>shadowEnabled</code>. Por ser anel, não escurece o furo.</li>
+          <li><strong>Rotor</strong>, a parte que gira (<code>NumberAnimation on rotation</code>, 360° em 9 s). <code>paused: !disc.spinning</code> faz o disco parar no ângulo em que estava. Dentro dele:
+            <ul class="plain">
+              <li><strong>Capa</strong>: uma <code>Image</code> escondida que serve de fonte a um <code>MultiEffect</code> com <strong>máscara</strong>. A máscara é o anel branco, então a capa só aparece no formato do disco. Sem capa, usa um degradê.</li>
+              <li><strong>Hub</strong>: anel com degradê radial branco translúcido, mais três círculos finos, como as marcas em relevo de um disco de verdade.</li>
+            </ul>
+          </li>
+          <li><strong>Reflexo iridescente</strong>, fora do rotor, então não gira. A luz que bate num CD fica parada enquanto ele gira. É um anel com <code>ConicalGradient</code> (degradê em leque) com faixas de ciano, rosa e amarelo em dois lados opostos.</li>
+          <li><strong>Borda externa</strong>: um contorno branco fino.</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 6 -->
+    <section id="lyrics">
+      <div class="file-head"><span class="n">06</span><h2><code>contents/ui/LyricsView.qml</code></h2><span class="role">A letra, sincronizada quando possível.</span></div>
+      <p>A letra vem do <a href="https://lrclib.net" target="_blank" rel="noopener">lrclib.net</a>, um banco gratuito e sem chave de API. Muitas letras lá vêm sincronizadas no formato LRC:</p>
+<pre><code><span class="k">[00:12.34]</span> primeira linha
+<span class="k">[00:15.80]</span> segunda linha</code></pre>
+
+      <h3>Busca: <code>fetchLyrics</code></h3>
+      <ol class="plain">
+        <li>Tenta a busca exata, <code>/api/get?track_name=…&amp;artist_name=…&amp;album_name=…&amp;duration=…</code>.</li>
+        <li>Se não achar (404), tenta a aproximada, <code>/api/search?…</code>, e prefere um resultado com letra sincronizada.</li>
+        <li>Guarda o resultado num cache em memória (<code>_cache</code>).</li>
+        <li><code>_key</code> (artista + música) descarta respostas antigas se a música trocar no meio da busca.</li>
+        <li>Só busca quando a aba de letra está aberta (<code>active</code>).</li>
+      </ol>
+
+      <h3>Interpretação: <code>parseLrc</code></h3>
+      <p>Uma expressão regular pega cada <code>[mm:ss.xx]</code> e transforma em segundos. Uma linha pode ter vários tempos, como um refrão repetido. Linhas vazias viram "♪". No fim, ordena por tempo.</p>
+
+      <h3>Linha atual: <code>currentLine</code></h3>
+      <p>É a última linha cujo tempo é menor ou igual à posição da música, com 0,25 s de antecipação para não parecer atrasada.</p>
+
+      <h3>Exibição: <code>ListView</code></h3>
+      <ul class="plain">
+        <li><code>highlightRangeMode</code> com <code>preferredHighlightBegin</code> a 38% da altura mantém a linha atual nessa faixa e rola a lista sozinho.</li>
+        <li>A linha atual fica maior, azul e opaca. As que já passaram ficam mais apagadas.</li>
+        <li>Se você rolar com o mouse, a rolagem automática pausa por 3 s.</li>
+        <li>Clicar numa linha emite <code>seekRequested(tempo)</code>, e o <code>main.qml</code> pula a música para lá.</li>
+        <li>Letra sem sincronia aparece como texto rolável comum.</li>
+        <li>Mensagens de estado: "Buscando letra…", "Letra não encontrada", "♪ Instrumental ♪" e erro de rede.</li>
+      </ul>
+    </section>
+
+    <!-- 7 -->
+    <section id="button">
+      <div class="file-head"><span class="n">07</span><h2><code>contents/ui/RoundButton.qml</code></h2><span class="role">Botão redondo reutilizável, usado em ⏮ ⏯ ⏭ e no botão de letra.</span></div>
+      <ul class="plain">
+        <li>Recebe <code>size</code>, <code>iconName</code>, <code>fg</code> (cor do ícone), <code>bgColor</code> (fundo), <code>filled</code> (fundo sempre visível ou só no hover) e <code>tooltip</code>.</li>
+        <li>O ícone é um <code>Kirigami.Icon</code> com <code>isMask: true</code>, que pinta o ícone do Breeze com qualquer cor.</li>
+        <li>Anima a escala ao clicar e no hover, e fica com 40% de opacidade quando desabilitado (ex.: sem música).</li>
+      </ul>
+    </section>
+
+    <!-- 8 -->
+    <section id="configui">
+      <div class="file-head"><span class="n">08</span><h2><code>contents/ui/configGeneral.qml</code></h2><span class="role">A tela de configurações.</span></div>
+      <ul class="plain">
+        <li><code>property alias cfg_clientId: clientField.text</code> e os outros <code>cfg_*</code>: o Plasma liga cada <code>cfg_NOME</code> à opção <code>NOME</code> do <code>main.xml</code>. Não há código para salvar; OK/Aplicar fazem isso.</li>
+        <li>Duas caixas de seleção: girar o disco e usar outro player.</li>
+        <li>Um texto com o passo a passo para criar o app no Spotify, com link clicável.</li>
+        <li>O campo do Client ID. <strong>Conectar</strong> só fica ativo com exatamente 32 caracteres hexadecimais (<code>validId</code>). Isso também protege, porque o valor vai para uma linha de comando.</li>
+        <li><strong>Conectar</strong> roda <code>python3 spotify_like.py auth &lt;clientId&gt;</code> e mostra o resultado. <strong>Desconectar</strong> roda <code>logout</code>, que apaga o token salvo.</li>
+      </ul>
+    </section>
+
+    <!-- 9 -->
+    <section id="python">
+      <div class="file-head"><span class="n">09</span><h2><code>contents/code/spotify_like.py</code></h2><span class="role">Login no Spotify e curtidas. Só biblioteca padrão do Python; sempre imprime uma linha JSON, que é o que o QML lê.</span></div>
+
+      <h3><code>auth &lt;client_id&gt;</code>: login OAuth com PKCE</h3>
+      <p>PKCE é o jeito seguro de fazer login em apps que não conseguem guardar uma senha secreta, como um widget.</p>
+      <ol class="plain">
+        <li>Gera um <code>verifier</code> aleatório e o <code>challenge</code> (o hash SHA-256 dele).</li>
+        <li>Sobe um mini servidor HTTP em <code>127.0.0.1:8898</code>.</li>
+        <li>Abre o navegador (<code>xdg-open</code>) no login do Spotify, pedindo <code>user-library-read</code> e <code>user-library-modify</code> (ler e alterar as Músicas Curtidas).</li>
+        <li>Você aceita e o Spotify redireciona para <code>http://127.0.0.1:8898/callback?code=…</code>. O servidor confere o <code>state</code> (proteção contra falsificação) e mostra "Conectado!".</li>
+        <li>Troca o código + <code>verifier</code> por um <strong>access token</strong> (cerca de 1 h) e um <strong>refresh token</strong> (longa duração).</li>
+        <li>Salva em <code>~/.config/spotifydisc/token.json</code> com permissão <code>600</code>. Escreve num arquivo temporário e renomeia, para nunca deixar o arquivo pela metade.</li>
+        <li>Sem resposta em 5 minutos, desiste.</li>
+      </ol>
+
+      <h3><code>access_token()</code></h3>
+      <p>Se o token vale por mais de 60 s, usa ele. Senão, pega um novo com o refresh token, sem novo login. Se o Spotify recusar, responde <code>{"error": "noauth"}</code>.</p>
+
+      <h3><code>status</code> e <code>toggle</code></h3>
+      <ol class="plain">
+        <li><strong>Descobre a música atual</strong> pelo DBus (<code>gdbus call … Metadata</code>). O ID vem num campo como <code>/com/spotify/track/4uLU6hMCjMI75M1A2tKUQC</code>. O QML não passa o ID de propósito, para nada vindo de fora entrar na linha de comando.</li>
+        <li><strong><code>is_liked</code></strong> pergunta à Web API se a faixa está curtida: tenta <code>GET /me/library/contains?uris=spotify:track:ID</code> e, se falhar, o antigo <code>GET /me/tracks/contains?ids=ID</code>.</li>
+        <li><strong><code>set_liked</code></strong> usa <code>PUT</code> para curtir e <code>DELETE</code> para descurtir, com o mesmo esquema de endpoint novo e reserva no antigo.</li>
+        <li><strong><code>toggle</code></strong> consulta, inverte e responde <code>{"liked": true/false}</code>.</li>
+      </ol>
+      <p class="note"><strong>Erros possíveis:</strong> <code>noauth</code> (não conectado), <code>notrack</code> (Spotify fechado, anúncio ou arquivo local) e <code>HTTP &lt;código&gt;</code>.</p>
+    </section>
+
+    <!-- 10 -->
+    <section id="install">
+      <div class="file-head"><span class="n">10</span><h2><code>install.sh</code></h2><span class="role">Instala ou atualiza o widget.</span></div>
+<pre><code>kpackagetool6 -t Plasma/Applet -s local.spotifydisc   <span class="c"># já está instalado?</span>
+  → sim: kpackagetool6 -u package   <span class="c"># atualiza</span>
+  → não: kpackagetool6 -i package   <span class="c"># instala</span></code></pre>
+      <p>O <code>kpackagetool6</code> copia <code>package/</code> para <code>~/.local/share/plasma/plasmoids/local.spotifydisc/</code>. Como o Plasma guarda o QML em memória, depois de atualizar é preciso reiniciar o <code>plasmashell</code> (ou reabrir o <code>plasmawindowed</code>).</p>
+    </section>
+
+    <!-- fluxo -->
+    <section id="fluxo">
+      <div class="file-head"><span class="n">↳</span><h2>Como tudo conversa</h2><span class="role">Setas sólidas são dados do player; tracejadas são rede.</span></div>
+      <div class="flow">
+        <svg viewBox="0 0 760 300" role="img" aria-label="Fluxo: Spotify envia dados por MPRIS ao main.qml, que alimenta Disc.qml e LyricsView.qml; LyricsView busca no lrclib.net; main.qml chama spotify_like.py, que lê o ID da faixa do Spotify por DBus e fala com a Spotify Web API">
+          <defs>
+            <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="#5CC8FF"/>
+            </marker>
+          </defs>
+          <g font-family="JetBrains Mono, monospace" font-size="12" fill="#D6E6FF">
+            <!-- caixas -->
+            <rect x="20" y="40" width="130" height="44" rx="8" fill="#0A1E4A" stroke="#24407A"/>
+            <text x="85" y="67" text-anchor="middle">Spotify</text>
+
+            <rect x="250" y="40" width="150" height="44" rx="8" fill="#0A1E4A" stroke="#5CC8FF"/>
+            <text x="325" y="67" text-anchor="middle">main.qml</text>
+
+            <rect x="500" y="10" width="150" height="40" rx="8" fill="#081633" stroke="#24407A"/>
+            <text x="575" y="35" text-anchor="middle">Disc.qml</text>
+
+            <rect x="500" y="74" width="150" height="40" rx="8" fill="#081633" stroke="#24407A"/>
+            <text x="575" y="99" text-anchor="middle">LyricsView.qml</text>
+
+            <rect x="560" y="150" width="170" height="40" rx="8" fill="#050C24" stroke="#24407A" stroke-dasharray="4 3"/>
+            <text x="645" y="175" text-anchor="middle">lrclib.net</text>
+
+            <rect x="230" y="190" width="190" height="44" rx="8" fill="#081633" stroke="#24407A"/>
+            <text x="325" y="217" text-anchor="middle">spotify_like.py</text>
+
+            <rect x="230" y="260" width="190" height="34" rx="8" fill="#050C24" stroke="#24407A" stroke-dasharray="4 3"/>
+            <text x="325" y="282" text-anchor="middle">Spotify Web API</text>
+
+            <!-- setas -->
+            <g stroke="#5CC8FF" stroke-width="1.5" fill="none">
+              <path d="M150 62 H246" marker-end="url(#ar)"/>
+              <path d="M400 54 C450 54 450 30 496 30" marker-end="url(#ar)"/>
+              <path d="M400 70 C450 70 450 94 496 94" marker-end="url(#ar)"/>
+              <path d="M650 106 C690 112 690 130 660 146" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+              <path d="M325 84 V186" marker-end="url(#ar)"/>
+              <path d="M226 212 C120 212 85 160 85 88" marker-end="url(#ar)"/>
+              <path d="M325 234 V256" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+            </g>
+            <!-- rótulos -->
+            <g fill="#7E9CCF" font-size="11">
+              <text x="198" y="54" text-anchor="middle">MPRIS</text>
+              <text x="458" y="22">artUrl</text>
+              <text x="430" y="118">música, posição</text>
+              <text x="696" y="134">HTTP</text>
+              <text x="333" y="140">♥ status / toggle</text>
+              <text x="70" y="150" text-anchor="end">DBus</text>
+              <text x="70" y="164" text-anchor="end">(ID da faixa)</text>
+              <text x="333" y="250">HTTPS</text>
+            </g>
+          </g>
+        </svg>
+      </div>
+    </section>
+
+    <footer>Widget <code>local.spotifydisc</code> para KDE Plasma 6. Código em <code>Spotify widget/package/</code>.</footer>
+  </main>
+</div>

@@ -1,0 +1,15 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [ { "Name": "Luiza" } ],
+        "Category": "Multimedia",
+        "Description": "Capa do Spotify como disco, letras sincronizadas e controles",
+        "Description[pt_BR]": "Capa do Spotify como disco, letras sincronizadas e controles",
+        "Icon": "media-optical-audio",
+        "Id": "local.spotifydisc",
+        "License": "GPL-3.0+",
+        "Name": "Spotify Disc",
+        "Version": "1.0"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}
